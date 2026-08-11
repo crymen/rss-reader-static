@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="可独立部署到 Cloudflare Pages 的混合 RSS 阅读器">
+  <title>混合 RSS 阅读器</title>
+  <link rel="stylesheet" href="/app.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="混合 RSS 阅读器首页"><span class="brand-mark">R</span> 混合 RSS</a>
+      <span class="header-note">Cloudflare Pages</span>
+    </div>
+  </header>
+  <main class="shell page" data-rss-reader>
+    <section class="page-heading">
+      <p class="eyebrow">RSS READER</p>
+      <h1>混合 RSS 阅读器</h1>
+      <p class="muted">订阅地址只保存在当前浏览器；RSS 内容只读取展示，不做存储。</p>
+    </section>
+
+    <section class="panel">
+      <form data-source-form>
+        <div class="add-row">
+          <label>地址名称<input required maxlength="100" placeholder="例如：Mikan 每日合集" data-source-title></label>
+          <label>RSS 地址<input type="url" required inputmode="url" placeholder="https://example.com/feed.xml" data-source-url></label>
+          <div class="form-actions">
+            <button class="button button-secondary" type="submit" data-source-save>添加地址</button>
+            <button class="button button-ghost is-hidden" type="button" data-source-cancel>取消</button>
+          </div>
+        </div>
+      </form>
+      <div class="source-list" data-source-list></div>
+      <div class="load-row">
+        <label>已维护地址<select data-source-select><option value="">请选择 RSS 地址</option></select></label>
+        <button class="button button-primary" type="button" data-load>读取 RSS</button>
+      </div>
+    </section>
+
+    <section class="results is-hidden" data-results>
+      <div class="toolbar">
+        <div><h2 data-feed-title>RSS 内容</h2><p class="muted" data-count></p></div>
+        <div class="tools">
+          <input type="search" aria-label="关键字搜索" placeholder="搜索标题或描述" data-search>
+          <button class="button button-secondary" type="button" data-copy-selected>复制已选链接</button>
+          <button class="button button-ghost" type="button" data-clear-selected disabled>取消选择</button>
+        </div>
+      </div>
+      <div class="reader-list" data-reader-list></div>
+      <div class="empty is-hidden" data-empty>没有符合关键字的内容。</div>
+    </section>
+  </main>
+  <div class="toast-region" aria-live="polite" aria-atomic="true" data-toasts></div>
+</body>
+</html>
+

@@ -1,0 +1,7 @@
+services:
+  rss-reader:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8788:8788"
+

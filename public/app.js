@@ -1,5 +1,7 @@
 (() => {
   const STORAGE_KEY = "mixed-rss-reader.sources.v1";
+  const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  const updateDayOf = item => Number.isInteger(item?.update_day) && item.update_day >= 0 && item.update_day <= 6 ? item.update_day : 0;
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const root = $("[data-rss-reader]");
@@ -26,33 +28,42 @@
   let sources = safeSources(), editingId = null, items = [], feedFormat = "";
   const select = $("[data-source-select]", root), sourceList = $("[data-source-list]", root);
   const titleInput = $("[data-source-title]", root), urlInput = $("[data-source-url]", root);
+  const updateDayInput = $("[data-source-update-day]", root), updateDayFilter = $("[data-update-day-filter]", root);
   const list = $("[data-reader-list]", root), results = $("[data-results]", root);
   const persist = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(sources));
   const resetForm = () => {
-    editingId = null; titleInput.value = ""; urlInput.value = "";
+    editingId = null; titleInput.value = ""; urlInput.value = ""; updateDayInput.value = "0";
     $("[data-source-save]", root).textContent = "添加地址";
     $("[data-source-cancel]", root).classList.add("is-hidden");
   };
   const editSource = item => {
-    editingId = item.id; titleInput.value = item.title; urlInput.value = item.rss_url;
+    editingId = item.id; titleInput.value = item.title; urlInput.value = item.rss_url; updateDayInput.value = String(updateDayOf(item));
     $("[data-source-save]", root).textContent = "保存修改";
     $("[data-source-cancel]", root).classList.remove("is-hidden"); titleInput.focus();
   };
   const renderSources = selectedId => {
     select.replaceChildren(new Option("请选择 RSS 地址", "")); sourceList.replaceChildren();
-    sources.forEach(item => {
+    const filterValue = updateDayFilter.value;
+    const visibleSources = sources.filter(item => filterValue === "" || updateDayOf(item) === Number(filterValue));
+    visibleSources.forEach(item => {
       select.add(new Option(item.title, item.id));
       const row = document.createElement("div"); row.className = "source-item";
       const info = document.createElement("div"); info.className = "source-info";
+      const titleRow = document.createElement("div"); titleRow.className = "source-title-row";
       const title = document.createElement("strong"); title.textContent = item.title;
-      const url = document.createElement("span"); url.textContent = item.rss_url; info.append(title, url);
+      const weekday = document.createElement("span"); weekday.className = "weekday-badge"; weekday.textContent = WEEKDAYS[updateDayOf(item)];
+      titleRow.append(title, weekday);
+      const url = document.createElement("span"); url.textContent = item.rss_url; info.append(titleRow, url);
       const actions = document.createElement("div"); actions.className = "source-actions";
       const edit = document.createElement("button"); edit.type = "button"; edit.className = "button button-ghost"; edit.textContent = "编辑"; edit.onclick = () => editSource(item);
       const remove = document.createElement("button"); remove.type = "button"; remove.className = "button button-ghost danger"; remove.textContent = "删除";
       remove.onclick = () => { if (!confirm(`确定删除“${item.title}”吗？`)) return; sources = sources.filter(value => value.id !== item.id); persist(); if (editingId === item.id) resetForm(); renderSources(); toast("RSS 地址已删除"); };
       actions.append(edit, remove); row.append(info, actions); sourceList.append(row);
     });
-    if (selectedId) select.value = selectedId;
+    if (!visibleSources.length) {
+      const empty = document.createElement("div"); empty.className = "empty source-empty"; empty.textContent = "该更新日暂无 RSS 地址。"; sourceList.append(empty);
+    }
+    if (selectedId && visibleSources.some(item => item.id === selectedId)) select.value = selectedId;
   };
   const firstText = (node, selectors) => {
     for (const selector of selectors) { const value = node.querySelector(selector)?.textContent?.trim(); if (value) return value; }
@@ -117,15 +128,16 @@
     updateSelection();
   };
   $("[data-source-form]", root).onsubmit = event => {
-    event.preventDefault(); const title = titleInput.value.trim(), rss_url = urlInput.value.trim();
+    event.preventDefault(); const title = titleInput.value.trim(), rss_url = urlInput.value.trim(), update_day = Number(updateDayInput.value);
     let parsed; try { parsed = new URL(rss_url); } catch { toast("请输入有效的 RSS 地址", true); return; }
     if (parsed.protocol !== "https:") { toast("RSS 地址必须使用 HTTPS", true); return; }
     const wasEditing = Boolean(editingId);
-    if (editingId) sources = sources.map(item => item.id === editingId ? {...item, title, rss_url} : item);
-    else sources.push({id: crypto.randomUUID(), title, rss_url});
+    if (editingId) sources = sources.map(item => item.id === editingId ? {...item, title, rss_url, update_day} : item);
+    else sources.push({id: crypto.randomUUID(), title, rss_url, update_day});
     const selectedId = editingId || sources.at(-1).id; persist(); resetForm(); renderSources(selectedId); toast(wasEditing ? "RSS 地址已更新" : "RSS 地址已添加");
   };
   $("[data-source-cancel]", root).onclick = resetForm;
+  updateDayFilter.onchange = () => renderSources(select.value);
   $("[data-load]", root).onclick = async event => {
     const selected = sources.find(item => item.id === select.value); if (!selected) { toast("请先选择 RSS 地址", true); return; }
     const button = event.currentTarget; button.disabled = true; button.textContent = "读取中…";

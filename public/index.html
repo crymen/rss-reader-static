@@ -28,6 +28,13 @@
         <div class="add-row">
           <label>地址名称<input required maxlength="100" placeholder="例如：Mikan 每日合集" data-source-title></label>
           <label>RSS 地址<input type="url" required inputmode="url" placeholder="https://example.com/feed.xml" data-source-url></label>
+          <label>维护更新日
+            <select required data-source-update-day>
+              <option value="1">周一</option><option value="2">周二</option><option value="3">周三</option>
+              <option value="4">周四</option><option value="5">周五</option><option value="6">周六</option>
+              <option value="0" selected>周日</option>
+            </select>
+          </label>
           <div class="form-actions">
             <button class="button button-secondary" type="submit" data-source-save>添加地址</button>
             <button class="button button-ghost is-hidden" type="button" data-source-cancel>取消</button>
@@ -36,6 +43,14 @@
       </form>
       <div class="source-list" data-source-list></div>
       <div class="load-row">
+        <label>更新日筛选
+          <select data-update-day-filter>
+            <option value="">全部更新日</option>
+            <option value="1">周一</option><option value="2">周二</option><option value="3">周三</option>
+            <option value="4">周四</option><option value="5">周五</option><option value="6">周六</option>
+            <option value="0">周日</option>
+          </select>
+        </label>
         <label>已维护地址<select data-source-select><option value="">请选择 RSS 地址</option></select></label>
         <button class="button button-primary" type="button" data-load>读取 RSS</button>
       </div>
@@ -57,4 +72,3 @@
   <div class="toast-region" aria-live="polite" aria-atomic="true" data-toasts></div>
 </body>
 </html>
-

@@ -12,6 +12,7 @@ RUN npm install
 COPY wrangler.toml ./
 COPY public ./public
 COPY functions ./functions
+COPY src ./src
 
 EXPOSE 8788
 
